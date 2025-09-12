@@ -12,35 +12,56 @@ Unity와 ROS2를 연동한 AR4 로봇 제어 시스템입니다.
 
 ## 🛠️ 시스템 구성
 
-### ROS2 워크스페이스 (`ros2_workspace/`)
-- `src/ar4_ros_driver/` - AR4 로봇 드라이버
-- `src/ROS-TCP-Endpoint/` - Unity 통신 패키지
-- `src/*.py` - 커스텀 제어 스크립트들
+### 🏗️ 멀티-레포 구조
+이 저장소는 [ar4-stack](https://github.com/kwangchae/ar4-stack) 메타 저장소의 서브모듈입니다:
 
-### Unity 프로젝트 (`unity_project/`)
-- AR4 로봇 3D 모델
-- ROS 통신 스크립트
-- 궤적 시각화 시스템
+```
+ar4-stack/                    ← 메타 저장소
+├── ros2-ar4-ws/             ← 이 저장소 (ROS2 워크스페이스)
+└── unity-ar4-sim/           ← Unity 시뮬레이션 저장소
+```
+
+### 📁 ROS2 워크스페이스 구성
+- `src/ar4_ros_driver/` - AR4 로봇 드라이버 패키지
+- `src/ROS-TCP-Endpoint/` - Unity 통신 TCP 엔드포인트
+- `src/*.py` - 커스텀 제어 및 브릿지 스크립트들
 
 ## 🚀 빠른 시작
 
-### 1단계: ROS2 환경 설정
+### 🏁 전체 시스템 클론 (권장)
 ```bash
-source ~/ar4_ws/install/setup.zsh
+# 메타 저장소에서 모든 서브모듈과 함께 클론
+git clone --recursive https://github.com/kwangchae/ar4-stack.git
+cd ar4-stack/ros2-ar4-ws
+```
+
+### 🔧 개별 저장소 사용
+```bash
+# 이 저장소만 클론
+git clone https://github.com/kwangchae/ros2-ar4-ws.git
+cd ros2-ar4-ws
+```
+
+### 1단계: ROS2 워크스페이스 빌드
+```bash
+colcon build
+source install/setup.bash
+```
+
+### 2단계: TCP 서버 시작
+```bash
 ros2 run ros_tcp_endpoint default_server_endpoint --ros-args -p ROS_IP:=0.0.0.0
 ```
 
-### 2단계: Unity 실행
-- Unity 프로젝트 열기
-- ROS Settings에서 WSL2 IP 설정
-- Play 버튼 클릭
+### 3단계: Unity 시뮬레이션 실행
+Unity 프로젝트는 [unity-ar4-sim](https://github.com/kwangchae/unity-ar4-sim) 저장소에서 확인하세요.
 
-### 3단계: MoveIt 실행
+### 4단계: MoveIt 실행
 ```bash
 ros2 launch annin_ar4_moveit_config demo.launch.py
 ```
 
-### 4단계: 제어 시스템 활성화
+### 5단계: 제어 시스템 활성화
 ```bash
 python3 src/smooth_robot_controller.py    # 터미널 1
 python3 src/moveit_bridge.py             # 터미널 2
@@ -106,9 +127,15 @@ python3 src/test_unity_connection.py
 - [v1.2] 부드러운 로봇 제어 시스템
 - [v1.3] 궤적 시각화 및 UI 개선
 
+## 🔗 관련 저장소
+
+- **메타 저장소**: [ar4-stack](https://github.com/kwangchae/ar4-stack) - 전체 시스템 통합
+- **Unity 시뮬레이션**: [unity-ar4-sim](https://github.com/kwangchae/unity-ar4-sim) - 3D 로봇 시각화
+- **AR4 공식**: [Annin Robotics](https://www.anninrobotics.com/) - AR4 로봇 하드웨어
+
 ## 🤝 기여
 
-이슈 및 개선 제안은 언제든 환영합니다!
+이슈 및 개선 제안은 [ar4-stack](https://github.com/kwangchae/ar4-stack)에서 환영합니다!
 
 ## 📄 라이선스
 
@@ -121,3 +148,5 @@ MIT License
 - ROS2: Jazzy Jellyfish  
 - Unity: 2022.3 LTS
 - Windows: 11
+
+> 🤖 이 저장소는 **AR4 Stack**의 일부입니다. 전체 시스템은 [ar4-stack](https://github.com/kwangchae/ar4-stack)에서 확인하세요.
