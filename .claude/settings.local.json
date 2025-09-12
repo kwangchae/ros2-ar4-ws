@@ -10,7 +10,9 @@
       "Bash(ros2 topic list:*)",
       "Bash(ros2 topic info:*)",
       "Bash(ros2 topic echo:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
