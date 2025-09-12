@@ -112,3 +112,6 @@ $RECYCLE.BIN/
 # Logs and temporary files
 *.log
 *.tmp
+
+# Local AI assistant config (not for commit)
+.claude/
