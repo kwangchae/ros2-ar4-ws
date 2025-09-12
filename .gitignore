@@ -1,0 +1,114 @@
+# ===================================
+# Unity + ROS2 Git Ignore File
+# ===================================
+
+# =============================================================================
+# Unity Generated Files
+# =============================================================================
+
+# Unity folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Unity3D Generated meta files
+*.tmp
+*.tmp.meta
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity3D Generated file on crash reports
+sysinfo.txt
+
+# Builds
+*.apk
+*.unitypackage
+*.app
+
+# Crashlytics generated file
+crashlytics-build.properties
+
+# =============================================================================
+# ROS2 Generated Files  
+# =============================================================================
+
+# ROS2 Build outputs
+build/
+install/
+log/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C++ build files
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+*.app
+
+# ROS bag files
+*.bag
+*.db3
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# OS Generated Files
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# =============================================================================
+# Project Specific
+# =============================================================================
+
+# Config files with sensitive info
+**/config/**/secret*
+**/config/**/*_secret*
+
+# Temporary robot poses
+**/ar4_poses.json
+
+# Large model files (consider Git LFS)
+*.stl
+*.dae
+*.mesh
+
+# Logs and temporary files
+*.log
+*.tmp
