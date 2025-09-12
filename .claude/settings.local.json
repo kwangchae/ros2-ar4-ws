@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(ros2 pkg list:*)",
+      "Bash(ros2 run:*)",
+      "Bash(pkill:*)",
+      "Bash(kill:*)",
+      "Bash(python3:*)",
+      "Bash(ros2 topic list:*)",
+      "Bash(ros2 topic info:*)",
+      "Bash(ros2 topic echo:*)",
+      "Bash(netstat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
