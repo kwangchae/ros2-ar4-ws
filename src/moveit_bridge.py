@@ -25,6 +25,11 @@ class MoveItUnityBridge(Node):
             reliability=QoSReliabilityPolicy.RELIABLE,
             durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
         )
+        self.display_qos_volatile = QoSProfile(
+            depth=10,
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            durability=QoSDurabilityPolicy.VOLATILE,
+        )
 
         # Subscribers for MoveIt trajectories (support common topic variants)
         self.display_trajectory_sub = self.create_subscription(
@@ -35,6 +40,15 @@ class MoveItUnityBridge(Node):
         self.display_trajectory_sub2 = self.create_subscription(
             DisplayTrajectory, '/move_group/display_planned_path',
             self.display_trajectory_callback, self.display_qos
+        )
+        # Fallback volatile subscriptions (when publisher uses VOLATILE durability)
+        self.display_trajectory_sub_v = self.create_subscription(
+            DisplayTrajectory, '/display_planned_path',
+            self.display_trajectory_callback, self.display_qos_volatile
+        )
+        self.display_trajectory_sub2_v = self.create_subscription(
+            DisplayTrajectory, '/move_group/display_planned_path',
+            self.display_trajectory_callback, self.display_qos_volatile
         )
         
         self.execute_trajectory_sub = self.create_subscription(
