@@ -11,8 +11,12 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
 import threading
 import sys
-import termios
-import tty
+try:
+    import termios
+    import tty
+    UNIX_SYSTEM = True
+except ImportError:
+    UNIX_SYSTEM = False
 import math
 
 class KeyboardTeleop(Node):
@@ -82,16 +86,23 @@ class KeyboardTeleop(Node):
         
     def get_key(self):
         """Get single keypress without Enter"""
-        if self.old_settings is None:
-            self.old_settings = termios.tcgetattr(sys.stdin)
-        
-        try:
-            tty.cbreak(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
-        
-        return ch
+        if UNIX_SYSTEM:
+            if self.old_settings is None:
+                self.old_settings = termios.tcgetattr(sys.stdin)
+
+            try:
+                tty.cbreak(sys.stdin.fileno())
+                ch = sys.stdin.read(1)
+            finally:
+                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+
+            return ch
+        else:
+            # Windows fallback - use input() with prompt
+            try:
+                return input("Enter command (or 'help' for instructions): ").strip()
+            except EOFError:
+                return '\x03'  # Ctrl+C
     
     def clamp_joint(self, joint_idx, position):
         """Clamp joint position within limits"""
@@ -219,7 +230,7 @@ class KeyboardTeleop(Node):
         
     def cleanup(self):
         """Cleanup terminal settings"""
-        if self.old_settings:
+        if UNIX_SYSTEM and self.old_settings:
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
 
 def main():
