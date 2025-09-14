@@ -6,6 +6,7 @@ from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory
 from moveit_msgs.msg import DisplayTrajectory
 from std_msgs.msg import Header
+from action_msgs.msg import GoalStatusArray
 import threading
 import time
 
@@ -27,10 +28,22 @@ class MoveItUnityBridge(Node):
             JointTrajectory, '/joint_trajectory_controller/joint_trajectory',
             self.execute_trajectory_callback, 10
         )
+
+        # Monitor MoveIt ExecuteTrajectory action status as a fallback trigger
+        # Many demo configs use the simple controller manager (no real controller topic),
+        # so we watch the action status to start executing the last planned path.
+        self.exec_status_sub = self.create_subscription(
+            GoalStatusArray, '/execute_trajectory/_action/status',
+            self.execute_status_callback, 10
+        )
         
         # Joint configuration
         self.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         
+        # Buffer for last planned trajectory (for fallback execution)
+        self._last_planned_points = []
+        self._executing = False
+
         self.get_logger().info('MoveIt Unity Bridge initialized')
         print("\n🌉 MOVEIT ↔ UNITY BRIDGE READY")
         print("• Listening to MoveIt planned paths")
@@ -51,6 +64,9 @@ class MoveItUnityBridge(Node):
             
         self.get_logger().info(f'📋 Received planned path with {len(trajectory_msg.points)} points')
         
+        # Cache points for potential execution fallback
+        self._last_planned_points = list(trajectory_msg.points)
+
         # Send waypoints for Unity visualization
         for i, point in enumerate(trajectory_msg.points):
             if len(point.positions) >= 6:
@@ -67,6 +83,26 @@ class MoveItUnityBridge(Node):
                 time.sleep(0.05)  # Small delay for visualization
                 
         self.get_logger().info('✅ Path preview sent to Unity')
+
+    def execute_status_callback(self, status_array: GoalStatusArray):
+        """Fallback: when MoveIt starts executing, drive Unity using the last planned path."""
+        # Start when we see an ACCEPTED or EXECUTING status
+        if self._executing or not self._last_planned_points:
+            return
+
+        if not status_array.status_list:
+            return
+
+        # 1=ACCEPTED, 2=EXECUTING in ROS 2 action status codes
+        if any(s.status in (1, 2) for s in status_array.status_list):
+            self.get_logger().info('⚑ Detected MoveIt execute request (action status). Starting Unity execution...')
+            traj = JointTrajectory()
+            traj.joint_names = self.joint_names
+            traj.points = self._last_planned_points
+
+            # Reuse timed execution logic
+            threading.Thread(target=self.execute_trajectory, args=(traj,), daemon=True).start()
+            self._executing = True
     
     def execute_trajectory_callback(self, trajectory_msg):
         """Handle trajectory execution"""
@@ -118,6 +154,8 @@ class MoveItUnityBridge(Node):
                 self.get_logger().info(f'Progress: {progress:.1f}%')
         
         self.get_logger().info('✅ Trajectory execution completed!')
+        # Allow subsequent executions
+        self._executing = False
 
 def main():
     rclpy.init()

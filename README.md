@@ -77,6 +77,12 @@ Unity 프로젝트는 [unity-ar4-sim](https://github.com/kwangchae/unity-ar4-sim
 ros2 launch annin_ar4_moveit_config demo.launch.py
 ```
 
+### 5단계: MoveIt ↔ Unity 브리지 실행
+```bash
+python3 src/moveit_bridge.py
+```
+Plan 시 `/trajectory_preview`로 Unity 웨이포인트 표시, Execute 시 `/joint_command`로 Unity 로봇 구동.
+
 ### 5단계: 제어 시스템 활성화
 ```bash
 python3 src/smooth_robot_controller.py    # 터미널 1
