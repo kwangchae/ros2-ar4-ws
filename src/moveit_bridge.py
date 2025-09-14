@@ -7,21 +7,34 @@ from trajectory_msgs.msg import JointTrajectory
 from moveit_msgs.msg import DisplayTrajectory
 from std_msgs.msg import Header
 from action_msgs.msg import GoalStatusArray
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 import threading
 import time
 
 class MoveItUnityBridge(Node):
     def __init__(self):
         super().__init__('moveit_unity_bridge')
-        
+
         # Publishers
         self.joint_command_pub = self.create_publisher(JointState, '/joint_command', 10)
         self.trajectory_preview_pub = self.create_publisher(JointState, '/trajectory_preview', 10)
-        
-        # Subscribers for MoveIt trajectories
+
+        # QoS: Some MoveIt publishers use TRANSIENT_LOCAL (latched) for display topics.
+        self.display_qos = QoSProfile(
+            depth=10,
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+        )
+
+        # Subscribers for MoveIt trajectories (support common topic variants)
         self.display_trajectory_sub = self.create_subscription(
             DisplayTrajectory, '/display_planned_path',
-            self.display_trajectory_callback, 10
+            self.display_trajectory_callback, self.display_qos
+        )
+        # Some configs namespace the topic under /move_group
+        self.display_trajectory_sub2 = self.create_subscription(
+            DisplayTrajectory, '/move_group/display_planned_path',
+            self.display_trajectory_callback, self.display_qos
         )
         
         self.execute_trajectory_sub = self.create_subscription(
