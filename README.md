@@ -64,7 +64,8 @@ ros2 run ros_tcp_endpoint default_server_endpoint --ros-args -p ROS_IP:=0.0.0.0
 ```bash
 cd ..   # ar4-stack 루트로 이동
 docker compose build
-docker compose up
+docker compose up        # 소프트웨어 시뮬레이션용 (ros)
+docker compose up ros-hw # 실기 연결(USB)용
 ```
 컨테이너는 포트 `10000`을 열고, `/ws`로 마운트된 이 워크스페이스를 빌드/사용합니다.
 
