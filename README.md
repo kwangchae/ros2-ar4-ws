@@ -59,6 +59,15 @@ source install/setup.bash
 ros2 run ros_tcp_endpoint default_server_endpoint --ros-args -p ROS_IP:=0.0.0.0
 ```
 
+### (선택) Docker로 ROS TCP 서버 실행
+메타 저장소 루트에서 Docker Compose를 사용해 손쉽게 서버를 실행할 수 있습니다.
+```bash
+cd ..   # ar4-stack 루트로 이동
+docker compose build
+docker compose up
+```
+컨테이너는 포트 `10000`을 열고, `/ws`로 마운트된 이 워크스페이스를 빌드/사용합니다.
+
 ### 3단계: Unity 시뮬레이션 실행
 Unity 프로젝트는 [unity-ar4-sim](https://github.com/kwangchae/unity-ar4-sim) 저장소에서 확인하세요.
 
