@@ -17,9 +17,24 @@ class MoveItUnityBridge(Node):
     def __init__(self):
         super().__init__('moveit_unity_bridge')
 
+        # Parameters
+        self.declare_parameter('controller_name', 'joint_trajectory_controller')
+        self.declare_parameter('preview_topic', '/trajectory_preview')
+        self.declare_parameter('command_topic', '/joint_command')
+
+        self.controller_name = (
+            self.get_parameter('controller_name').get_parameter_value().string_value
+        )
+        self.preview_topic = (
+            self.get_parameter('preview_topic').get_parameter_value().string_value
+        )
+        self.command_topic = (
+            self.get_parameter('command_topic').get_parameter_value().string_value
+        )
+
         # Publishers
-        self.joint_command_pub = self.create_publisher(JointState, '/joint_command', 10)
-        self.trajectory_preview_pub = self.create_publisher(JointState, '/trajectory_preview', 10)
+        self.joint_command_pub = self.create_publisher(JointState, self.command_topic, 10)
+        self.trajectory_preview_pub = self.create_publisher(JointState, self.preview_topic, 10)
 
         # QoS: Some MoveIt publishers use TRANSIENT_LOCAL (latched) for display topics.
         self.display_qos = QoSProfile(
@@ -54,7 +69,7 @@ class MoveItUnityBridge(Node):
         )
         
         self.execute_trajectory_sub = self.create_subscription(
-            JointTrajectory, '/joint_trajectory_controller/joint_trajectory',
+            JointTrajectory, f'/{self.controller_name}/joint_trajectory',
             self.execute_trajectory_callback, 10
         )
 
@@ -69,7 +84,7 @@ class MoveItUnityBridge(Node):
         # Also mirror controller feedback to Unity during execution
         self.follow_fb_sub = self.create_subscription(
             FollowJointTrajectory_FeedbackMessage,
-            '/joint_trajectory_controller/follow_joint_trajectory/_action/feedback',
+            f'/{self.controller_name}/follow_joint_trajectory/_action/feedback',
             self.follow_feedback_callback,
             10,
         )
@@ -81,7 +96,10 @@ class MoveItUnityBridge(Node):
         self._last_planned_points = []
         self._executing = False
 
-        self.get_logger().info('MoveIt Unity Bridge initialized')
+        self.get_logger().info(
+            'MoveIt Unity Bridge initialized (controller=%s, preview_topic=%s, command_topic=%s)'
+            % (self.controller_name, self.preview_topic, self.command_topic)
+        )
         print("\n🌉 MOVEIT ↔ UNITY BRIDGE READY")
         print("• Listening to MoveIt planned paths")
         print("• Will send trajectories to Unity")
