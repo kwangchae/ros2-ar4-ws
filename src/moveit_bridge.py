@@ -149,7 +149,7 @@ class MoveItUnityBridge(Node):
     def execute_trajectory(self, trajectory_msg):
         """Execute trajectory with proper timing"""
         start_time = time.time()
-        
+
         for i, point in enumerate(trajectory_msg.points):
             if len(point.positions) < 6:
                 continue
@@ -174,6 +174,18 @@ class MoveItUnityBridge(Node):
             command_msg.effort = []
             
             self.joint_command_pub.publish(command_msg)
+
+            # Also publish preview waypoints so Unity shows path even if no DisplayTrajectory was received
+            preview_msg = JointState()
+            preview_msg.header = Header()
+            preview_msg.header.stamp = self.get_clock().now().to_msg()
+            # Use waypoint_0 on first point to trigger clear in visualizer
+            preview_msg.header.frame_id = f'waypoint_{i}'
+            preview_msg.name = self.joint_names
+            preview_msg.position = list(point.positions[:6])
+            preview_msg.velocity = []
+            preview_msg.effort = []
+            self.trajectory_preview_pub.publish(preview_msg)
             
             # Progress feedback
             if i % max(1, len(trajectory_msg.points)//5) == 0:
