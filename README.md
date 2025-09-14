@@ -44,7 +44,13 @@ cd ros2-ar4-ws
 
 ### 1단계: ROS2 워크스페이스 빌드
 ```bash
-colcon build
+# 의존성 설치 (권장)
+rosdep install --from-paths . --ignore-src -r -y
+
+# 빌드
+colcon build --symlink-install
+
+# 환경 설정 로드
 source install/setup.bash
 ```
 
