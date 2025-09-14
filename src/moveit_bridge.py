@@ -7,6 +7,8 @@ from trajectory_msgs.msg import JointTrajectory
 from moveit_msgs.msg import DisplayTrajectory
 from std_msgs.msg import Header
 from action_msgs.msg import GoalStatusArray
+from control_msgs.action import FollowJointTrajectory
+from control_msgs.action._follow_joint_trajectory import FollowJointTrajectory_FeedbackMessage
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 import threading
 import time
@@ -63,6 +65,14 @@ class MoveItUnityBridge(Node):
             GoalStatusArray, '/execute_trajectory/_action/status',
             self.execute_status_callback, 10
         )
+
+        # Also mirror controller feedback to Unity during execution
+        self.follow_fb_sub = self.create_subscription(
+            FollowJointTrajectory_FeedbackMessage,
+            '/joint_trajectory_controller/follow_joint_trajectory/_action/feedback',
+            self.follow_feedback_callback,
+            10,
+        )
         
         # Joint configuration
         self.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
@@ -110,6 +120,31 @@ class MoveItUnityBridge(Node):
                 time.sleep(0.05)  # Small delay for visualization
                 
         self.get_logger().info('✅ Path preview sent to Unity')
+
+    def follow_feedback_callback(self, fb_msg: FollowJointTrajectory_FeedbackMessage):
+        """Drive Unity from controller feedback (desired positions)."""
+        try:
+            pt = fb_msg.feedback.desired
+            if not pt.positions:
+                return
+            cmd = JointState()
+            cmd.header = Header()
+            cmd.header.stamp = self.get_clock().now().to_msg()
+            cmd.header.frame_id = 'moveit_fb'
+            cmd.name = self.joint_names
+            cmd.position = list(pt.positions[:6])
+            self.joint_command_pub.publish(cmd)
+
+            # Preview as well (helps Unity visualize live)
+            preview = JointState()
+            preview.header = Header()
+            preview.header.stamp = self.get_clock().now().to_msg()
+            preview.header.frame_id = 'waypoint_fb'
+            preview.name = self.joint_names
+            preview.position = list(pt.positions[:6])
+            self.trajectory_preview_pub.publish(preview)
+        except Exception as e:
+            self.get_logger().warn(f'follow_feedback_callback error: {e}')
 
     def execute_status_callback(self, status_array: GoalStatusArray):
         """Fallback: when MoveIt starts executing, drive Unity using the last planned path."""
